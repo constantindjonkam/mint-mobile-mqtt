@@ -59,9 +59,9 @@ export class MintMqttBridge {
       return; // Skip HA Discovery configs completely if disabled
     }
 
-    console.log(`[mqtt] Configuring Home Assistant discovery entities for ${phone}...`);
-    const device = this.getDevicePayload(phone);
     const last4 = phone.slice(-4);
+    console.log(`[mqtt] Configuring Home Assistant discovery entities for ...${last4}...`);
+    const device = this.getDevicePayload(phone);
 
     const entities = [
       {
@@ -162,7 +162,7 @@ export class MintMqttBridge {
 
   publishState(data: MintAccountInfo) {
     const phone = data.phone;
-    console.log(`[mqtt] Publishing state updates for ${phone}...`);
+    console.log(`[mqtt] Publishing state updates for ...${phone.slice(-4)}...`);
 
     const states: Record<string, string | number> = {
       plan_name: data.planName,

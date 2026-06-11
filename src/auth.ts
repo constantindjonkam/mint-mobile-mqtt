@@ -112,7 +112,7 @@ export async function getValidSession(phone: string, password: string): Promise<
   }
 
   // 3. Fallback to full login
-  console.log(`[auth] Re-authenticating with phone: ${phone}...`);
+  console.log(`[auth] Re-authenticating with phone: ...${phone.slice(-4)}...`);
   const loginUrl = 'https://mint-gateway.mintmobile.com/v1/mint/login';
   const staticAppToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDc3NjY4MjQsIm5iZiI6MTUwNzc2NjgyNCwiZXhwIjoxNTk0MDgwNDI0LCJhdWQiOiJNaW50QXBwIiwiaXNzIjoiVUxUUkEifQ.r909IZmcavEhqvZO0td_-Ts_q27BBk4cCbFRXpDBQUM';
   const loginBody = {
