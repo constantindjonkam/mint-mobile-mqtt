@@ -7,6 +7,8 @@ export interface Config {
   mqttUser?: string;
   mqttPass?: string;
   mqttPrefix: string;
+  mqttDiscovery: boolean;
+  mqttDiscoveryPrefix: string;
   pollIntervalMins: number;
 }
 
@@ -22,7 +24,9 @@ export function loadConfig(): Config {
   const mqttUrl = process.env.MQTT_URL || 'mqtt://localhost:1883';
   const mqttUser = process.env.MQTT_USER || undefined;
   const mqttPass = process.env.MQTT_PASS || undefined;
-  const mqttPrefix = process.env.MQTT_PREFIX || 'homeassistant';
+  const mqttPrefix = process.env.MQTT_PREFIX || 'mintmobile';
+  const mqttDiscovery = process.env.MQTT_DISCOVERY !== 'false'; // default true
+  const mqttDiscoveryPrefix = process.env.MQTT_DISCOVERY_PREFIX || 'homeassistant';
   const pollIntervalMins = parseInt(process.env.POLL_INTERVAL_MINS || '60', 10);
 
   return {
@@ -32,6 +36,8 @@ export function loadConfig(): Config {
     mqttUser,
     mqttPass,
     mqttPrefix,
+    mqttDiscovery,
+    mqttDiscoveryPrefix,
     pollIntervalMins,
   };
 }

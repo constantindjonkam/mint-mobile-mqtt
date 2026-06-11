@@ -6,9 +6,14 @@ import { Config } from './config.js';
 export class MintMqttBridge {
   private client: MqttClient;
   private prefix: string;
+  private discoveryEnabled: boolean;
+  private discoveryPrefix: string;
 
   constructor(cfg: Config) {
     this.prefix = cfg.mqttPrefix;
+    this.discoveryEnabled = cfg.mqttDiscovery;
+    this.discoveryPrefix = cfg.mqttDiscoveryPrefix;
+
     console.log(`[mqtt] Connecting to broker at: ${cfg.mqttUrl}`);
     this.client = mqtt.connect(cfg.mqttUrl, {
       username: cfg.mqttUser,
@@ -41,8 +46,18 @@ export class MintMqttBridge {
     this.client.publish(topic, payload, { retain });
   }
 
+  private getStateTopic(phone: string, key: string): string {
+    return this.prefix === 'homeassistant'
+      ? `homeassistant/sensor/mint_${phone}_${key}/state`
+      : `${this.prefix}/${phone}/sensor/${key}/state`;
+  }
+
   // Set up HA Discovery for all sensors
   setupDiscovery(phone: string) {
+    if (!this.discoveryEnabled) {
+      return; // Skip HA Discovery configs completely if disabled
+    }
+
     console.log(`[mqtt] Configuring Home Assistant discovery entities for ${phone}...`);
     const device = this.getDevicePayload(phone);
 
@@ -95,8 +110,8 @@ export class MintMqttBridge {
     ];
 
     for (const ent of entities) {
-      const configTopic = `${this.prefix}/sensor/mint_${phone}_${ent.key}/config`;
-      const stateTopic = `${this.prefix}/sensor/mint_${phone}_${ent.key}/state`;
+      const configTopic = `${this.discoveryPrefix}/sensor/mint_${phone}_${ent.key}/config`;
+      const stateTopic = this.getStateTopic(phone, ent.key);
 
       const payload: any = {
         name: ent.name,
@@ -129,7 +144,7 @@ export class MintMqttBridge {
     };
 
     for (const [key, val] of Object.entries(states)) {
-      const stateTopic = `${this.prefix}/sensor/mint_${phone}_${key}/state`;
+      const stateTopic = this.getStateTopic(phone, key);
       this.publishRaw(stateTopic, String(val));
     }
   }
@@ -138,3 +153,4 @@ export class MintMqttBridge {
     this.client.end();
   }
 }
+
