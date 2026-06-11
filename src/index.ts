@@ -18,8 +18,10 @@ async function updateState() {
     console.log(`[daemon] Successfully fetched ${dataList.length} line(s) from Mint Mobile API.`);
 
     for (const data of dataList) {
-      console.log(`[daemon] - Processing Line: ${data.lineName} (${data.phone}). Plan: "${data.planName}", Used: ${data.dataUsedGb} GB / ${data.dataTotalGb} GB`);
-      
+      console.log(
+        `[daemon] - Processing Line: ${data.lineName} (${data.phone}). Plan: "${data.planName}", Used: ${data.dataUsedGb} GB / ${data.dataTotalGb} GB`,
+      );
+
       // 3. Set up Discovery (runs on every tick defensively, ensuring configs exist in HA)
       mqttBridge.setupDiscovery(data.phone);
 

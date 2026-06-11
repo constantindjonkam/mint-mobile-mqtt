@@ -62,24 +62,26 @@ export async function getValidSession(phone: string, password: string): Promise<
     console.log('[auth] Session token expired. Attempting to refresh token...');
     try {
       const refreshUrl = 'https://mint-gateway.mintmobile.com/v1/mint/refresh';
-      const staticAppToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDc3NjY4MjQsIm5iZiI6MTUwNzc2NjgyNCwiZXhwIjoxNTk0MDgwNDI0LCJhdWQiOiJNaW50QXBwIiwiaXNzIjoiVUxUUkEifQ.r909IZmcavEhqvZO0td_-Ts_q27BBk4cCbFRXpDBQUM';
+      const staticAppToken =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDc3NjY4MjQsIm5iZiI6MTUwNzc2NjgyNCwiZXhwIjoxNTk0MDgwNDI0LCJhdWQiOiJNaW50QXBwIiwiaXNzIjoiVUxUUkEifQ.r909IZmcavEhqvZO0td_-Ts_q27BBk4cCbFRXpDBQUM';
 
       const refreshRes = await fetch(refreshUrl, {
         method: 'POST',
         headers: {
-          'accept': 'application/json',
-          'authorization': `Bearer ${staticAppToken}`,
-          'channel': 'web-am',
+          accept: 'application/json',
+          authorization: `Bearer ${staticAppToken}`,
+          channel: 'web-am',
           'content-type': 'application/json',
-          'origin': 'https://my.mintmobile.com',
-          'referer': 'https://my.mintmobile.com/',
+          origin: 'https://my.mintmobile.com',
+          referer: 'https://my.mintmobile.com/',
           'sec-ch-ua': '"Microsoft Edge";v="149", "Chromium";v="149", "Not)A;Brand";v="24"',
           'sec-ch-ua-mobile': '?0',
           'sec-ch-ua-platform': '"macOS"',
           'sec-fetch-dest': 'empty',
           'sec-fetch-mode': 'cors',
           'sec-fetch-site': 'same-site',
-          'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0',
+          'user-agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0',
         },
         body: JSON.stringify({
           id: cached.userId,
@@ -88,7 +90,7 @@ export async function getValidSession(phone: string, password: string): Promise<
       });
 
       if (refreshRes.ok) {
-        const refreshData = await refreshRes.json() as any;
+        const refreshData = (await refreshRes.json()) as any;
         const newToken = refreshData.token;
         const newRefreshToken = refreshData.refreshToken;
 
@@ -98,14 +100,16 @@ export async function getValidSession(phone: string, password: string): Promise<
             token: newToken,
             refreshToken: newRefreshToken,
             userId: cached.userId,
-            expiresAt: payload.exp || (nowSec + 900),
+            expiresAt: payload.exp || nowSec + 900,
           };
           saveSession(session);
           console.log('[auth] Successfully refreshed session token.');
           return session;
         }
       }
-      console.warn(`[auth] Token refresh request failed with status: ${refreshRes.status}. Falling back to full login.`);
+      console.warn(
+        `[auth] Token refresh request failed with status: ${refreshRes.status}. Falling back to full login.`,
+      );
     } catch (e: any) {
       console.warn('[auth] Error during token refresh, falling back to full login:', e.message || e);
     }
@@ -114,7 +118,8 @@ export async function getValidSession(phone: string, password: string): Promise<
   // 3. Fallback to full login
   console.log(`[auth] Re-authenticating with phone: ...${phone.slice(-4)}...`);
   const loginUrl = 'https://mint-gateway.mintmobile.com/v1/mint/login';
-  const staticAppToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDc3NjY4MjQsIm5iZiI6MTUwNzc2NjgyNCwiZXhwIjoxNTk0MDgwNDI0LCJhdWQiOiJNaW50QXBwIiwiaXNzIjoiVUxUUkEifQ.r909IZmcavEhqvZO0td_-Ts_q27BBk4cCbFRXpDBQUM';
+  const staticAppToken =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDc3NjY4MjQsIm5iZiI6MTUwNzc2NjgyNCwiZXhwIjoxNTk0MDgwNDI0LCJhdWQiOiJNaW50QXBwIiwiaXNzIjoiVUxUUkEifQ.r909IZmcavEhqvZO0td_-Ts_q27BBk4cCbFRXpDBQUM';
   const loginBody = {
     msisdn: phone,
     password: password,
@@ -124,9 +129,9 @@ export async function getValidSession(phone: string, password: string): Promise<
   const loginRes = await fetch(loginUrl, {
     method: 'POST',
     headers: {
-      'accept': 'application/json',
+      accept: 'application/json',
       'content-type': 'application/json',
-      'authorization': `Bearer ${staticAppToken}`,
+      authorization: `Bearer ${staticAppToken}`,
       'kaena-channel': 'ktrz9qhy92a4nx6',
       'user-agent': 'MintMobile | 2026.5.27 (9076) | arm64 | dce80f5e-5d5c-4c67-bd93-4e4e19f2db8f | Android',
     },
@@ -138,7 +143,7 @@ export async function getValidSession(phone: string, password: string): Promise<
     throw new Error(`[auth] Mint login failed with status ${loginRes.status}: ${errorText}`);
   }
 
-  const loginData = await loginRes.json() as any;
+  const loginData = (await loginRes.json()) as any;
   const token = loginData.token || loginData.accessToken;
   const refreshToken = loginData.refreshToken;
   if (!token) {
@@ -155,7 +160,7 @@ export async function getValidSession(phone: string, password: string): Promise<
     token,
     refreshToken,
     userId: String(userId),
-    expiresAt: payload.exp || (nowSec + 900), // Default to 15m if exp not found
+    expiresAt: payload.exp || nowSec + 900, // Default to 15m if exp not found
   };
 
   saveSession(session);

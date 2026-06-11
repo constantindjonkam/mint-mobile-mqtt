@@ -30,7 +30,9 @@ export function loadConfig(): Config {
   const pollIntervalMins = parseInt(process.env.POLL_INTERVAL_MINS || '720', 10);
 
   if (isNaN(pollIntervalMins) || pollIntervalMins < 60) {
-    console.error('Error: POLL_INTERVAL_MINS must be a number greater than or equal to 60 (to protect Mint Mobile API rate limits).');
+    console.error(
+      'Error: POLL_INTERVAL_MINS must be a number greater than or equal to 60 (to protect Mint Mobile API rate limits).',
+    );
     process.exit(1);
   }
 

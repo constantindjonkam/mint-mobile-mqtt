@@ -189,4 +189,3 @@ export class MintMqttBridge {
     this.client.end();
   }
 }
-
