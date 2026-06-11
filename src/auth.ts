@@ -7,6 +7,7 @@ const cacheFile = path.join(dataDir, 'tokens.json');
 
 export interface Session {
   token: string;
+  refreshToken?: string;
   userId: string;
   expiresAt: number;
 }
@@ -50,14 +51,70 @@ export async function getValidSession(phone: string, password: string): Promise<
   const cached = loadSession();
   const nowSec = Math.floor(Date.now() / 1000);
 
-  // If we have a cached token and it has at least 60 seconds of validity left, use it
+  // 1. If we have a cached token and it's still valid, reuse it
   if (cached && cached.expiresAt > nowSec + 60) {
     console.log(`[auth] Reusing cached session token (expires in ${cached.expiresAt - nowSec}s).`);
     return cached;
   }
 
-  console.log(`[auth] Session token expired or missing. Re-authenticating with phone: ${phone}...`);
-  const loginUrl = 'https://mint-gateway.mintmobile.com/v2/mint/login';
+  // 2. If token is expired but we have a refresh token, try refreshing it
+  if (cached && cached.refreshToken) {
+    console.log('[auth] Session token expired. Attempting to refresh token...');
+    try {
+      const refreshUrl = 'https://mint-gateway.mintmobile.com/v1/mint/refresh';
+      const staticAppToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDc3NjY4MjQsIm5iZiI6MTUwNzc2NjgyNCwiZXhwIjoxNTk0MDgwNDI0LCJhdWQiOiJNaW50QXBwIiwiaXNzIjoiVUxUUkEifQ.r909IZmcavEhqvZO0td_-Ts_q27BBk4cCbFRXpDBQUM';
+
+      const refreshRes = await fetch(refreshUrl, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'authorization': `Bearer ${staticAppToken}`,
+          'channel': 'web-am',
+          'content-type': 'application/json',
+          'origin': 'https://my.mintmobile.com',
+          'referer': 'https://my.mintmobile.com/',
+          'sec-ch-ua': '"Microsoft Edge";v="149", "Chromium";v="149", "Not)A;Brand";v="24"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"macOS"',
+          'sec-fetch-dest': 'empty',
+          'sec-fetch-mode': 'cors',
+          'sec-fetch-site': 'same-site',
+          'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0',
+        },
+        body: JSON.stringify({
+          id: cached.userId,
+          refreshToken: cached.refreshToken,
+        }),
+      });
+
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json() as any;
+        const newToken = refreshData.token;
+        const newRefreshToken = refreshData.refreshToken;
+
+        if (newToken && newRefreshToken) {
+          const payload = decodeJwt(newToken);
+          const session: Session = {
+            token: newToken,
+            refreshToken: newRefreshToken,
+            userId: cached.userId,
+            expiresAt: payload.exp || (nowSec + 900),
+          };
+          saveSession(session);
+          console.log('[auth] Successfully refreshed session token.');
+          return session;
+        }
+      }
+      console.warn(`[auth] Token refresh request failed with status: ${refreshRes.status}. Falling back to full login.`);
+    } catch (e: any) {
+      console.warn('[auth] Error during token refresh, falling back to full login:', e.message || e);
+    }
+  }
+
+  // 3. Fallback to full login
+  console.log(`[auth] Re-authenticating with phone: ${phone}...`);
+  const loginUrl = 'https://mint-gateway.mintmobile.com/v1/mint/login';
+  const staticAppToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDc3NjY4MjQsIm5iZiI6MTUwNzc2NjgyNCwiZXhwIjoxNTk0MDgwNDI0LCJhdWQiOiJNaW50QXBwIiwiaXNzIjoiVUxUUkEifQ.r909IZmcavEhqvZO0td_-Ts_q27BBk4cCbFRXpDBQUM';
   const loginBody = {
     msisdn: phone,
     password: password,
@@ -67,20 +124,11 @@ export async function getValidSession(phone: string, password: string): Promise<
   const loginRes = await fetch(loginUrl, {
     method: 'POST',
     headers: {
-      'accept': '*/*',
-      'accept-language': 'en-US,en;q=0.9',
-      'authorization': 'Bearer null',
-      'channel': 'web-am',
+      'accept': 'application/json',
       'content-type': 'application/json',
-      'origin': 'https://my.mintmobile.com',
-      'referer': 'https://my.mintmobile.com/',
-      'sec-ch-ua': '"Microsoft Edge";v="149", "Chromium";v="149", "Not)A;Brand";v="24"',
-      'sec-ch-ua-mobile': '?0',
-      'sec-ch-ua-platform': '"macOS"',
-      'sec-fetch-dest': 'empty',
-      'sec-fetch-mode': 'cors',
-      'sec-fetch-site': 'same-site',
-      'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0',
+      'authorization': `Bearer ${staticAppToken}`,
+      'kaena-channel': 'ktrz9qhy92a4nx6',
+      'user-agent': 'MintMobile | 2026.5.27 (9076) | arm64 | dce80f5e-5d5c-4c67-bd93-4e4e19f2db8f | Android',
     },
     body: JSON.stringify(loginBody),
   });
@@ -92,6 +140,7 @@ export async function getValidSession(phone: string, password: string): Promise<
 
   const loginData = await loginRes.json() as any;
   const token = loginData.token || loginData.accessToken;
+  const refreshToken = loginData.refreshToken;
   if (!token) {
     throw new Error('[auth] Could not find token in login response.');
   }
@@ -104,6 +153,7 @@ export async function getValidSession(phone: string, password: string): Promise<
 
   const session: Session = {
     token,
+    refreshToken,
     userId: String(userId),
     expiresAt: payload.exp || (nowSec + 900), // Default to 15m if exp not found
   };
