@@ -13,15 +13,19 @@ async function updateState() {
     // 1. Get valid authenticated session (handles cache or re-login)
     const session = await getValidSession(config.mintPhone, config.mintPass);
 
-    // 2. Fetch data from Mint Mobile API
-    const data = await fetchMintData(session.token, session.userId);
-    console.log(`[daemon] Successfully fetched Mint Mobile data. Plan: "${data.planName}", Used: ${data.dataUsedGb} GB / ${data.dataTotalGb} GB`);
+    // 2. Fetch data from Mint Mobile API (returns array containing primary and any family/linked lines)
+    const dataList = await fetchMintData(session.token, session.userId);
+    console.log(`[daemon] Successfully fetched ${dataList.length} line(s) from Mint Mobile API.`);
 
-    // 3. Set up Discovery (runs on every tick defensively, ensuring configs exist in HA)
-    mqttBridge.setupDiscovery(data.phone);
+    for (const data of dataList) {
+      console.log(`[daemon] - Processing Line: ${data.lineName} (${data.phone}). Plan: "${data.planName}", Used: ${data.dataUsedGb} GB / ${data.dataTotalGb} GB`);
+      
+      // 3. Set up Discovery (runs on every tick defensively, ensuring configs exist in HA)
+      mqttBridge.setupDiscovery(data.phone);
 
-    // 4. Publish current states
-    mqttBridge.publishState(data);
+      // 4. Publish current states
+      mqttBridge.publishState(data);
+    }
     console.log('[daemon] Update cycle completed successfully.');
   } catch (error: any) {
     console.error('[daemon] Error during update cycle:', error.message || error);

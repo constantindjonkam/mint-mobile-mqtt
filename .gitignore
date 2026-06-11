@@ -5,3 +5,5 @@ poc_output.json
 poc.ts
 requests
 test_login.ts
+test_multiline.ts
+.DS_Store
