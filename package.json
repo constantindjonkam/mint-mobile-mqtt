@@ -8,6 +8,6 @@
     "start": "bun run src/index.ts"
   },
   "dependencies": {
-    "mqtt": "^5.3.5"
+    "mqtt": "^5.15.1"
   }
 }
