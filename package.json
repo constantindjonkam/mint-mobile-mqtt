@@ -1,0 +1,13 @@
+{
+  "name": "mintmobile-mqtt",
+  "version": "1.0.0",
+  "description": "Publish Mint Mobile usage data to Home Assistant via MQTT",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "mqtt": "^5.3.5"
+  }
+}
