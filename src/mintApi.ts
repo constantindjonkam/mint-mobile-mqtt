@@ -18,7 +18,11 @@ export interface MintAccountInfo {
   phone: string;
   planName: string;
   cycleEndDate: string;
-  daysRemaining: number;
+  daysRemaining: number;      // Days remaining in month
+  daysRemainingPlan: number;  // Days remaining in plan overall
+  planMonths: number;         // Months purchased
+  lineName: string;
+  lastUpdated: string;
   dataUsedGb: number;
   dataRemainingGb: number;
   dataTotalGb: number;
@@ -86,9 +90,12 @@ export async function fetchMintData(token: string, userId: string): Promise<Mint
   const usageData = await usageRes.json() as any;
 
   // Extract variables
-  const phone = accountData.msisdn || accountData.phone?.msisdn;
+  const phone = accountData.msisdn || accountData.phone?.msisdn || '';
   const activePlanId = accountData.plan?.id || accountData.phone?.plan?.id;
   const endOfCycle = accountData.plan?.endOfCycle || accountData.phone?.plan?.endOfCycle || 0;
+  const planExp = accountData.plan?.exp || accountData.phone?.plan?.exp || 0;
+  const planMonths = accountData.plan?.months || accountData.phone?.plan?.months || 0;
+  const lineName = accountData.firstName || accountData.phone?.firstName || 'Mint Line';
   
   // Resolve plan name
   const allAvailablePlans = [
@@ -111,15 +118,25 @@ export async function fetchMintData(token: string, userId: string): Promise<Mint
 
   // Time calculations
   const nowSec = Math.floor(Date.now() / 1000);
-  const diffSec = endOfCycle - nowSec;
-  const daysRemaining = Math.max(0, Math.ceil(diffSec / 86400));
+  
+  const diffSecMonth = endOfCycle - nowSec;
+  const daysRemaining = Math.max(0, Math.ceil(diffSecMonth / 86400));
   const cycleEndDate = endOfCycle ? new Date(endOfCycle * 1000).toISOString() : new Date().toISOString();
+
+  const diffSecPlan = planExp - nowSec;
+  const daysRemainingPlan = Math.max(0, Math.ceil(diffSecPlan / 86400));
+
+  const lastUpdated = new Date().toISOString();
 
   return {
     phone,
     planName,
     cycleEndDate,
     daysRemaining,
+    daysRemainingPlan,
+    planMonths,
+    lineName,
+    lastUpdated,
     dataUsedGb,
     dataRemainingGb,
     dataTotalGb,

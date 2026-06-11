@@ -107,6 +107,35 @@ export class MintMqttBridge {
         stateClass: 'measurement',
         icon: 'mdi:calendar-range',
       },
+      {
+        key: 'plan_months',
+        name: 'Plan Months Purchased',
+        unit: 'months',
+        icon: 'mdi:calendar-multiselect',
+      },
+      {
+        key: 'plan_days_remaining',
+        name: 'Days Remaining for Plan',
+        unit: 'days',
+        stateClass: 'measurement',
+        icon: 'mdi:calendar-check',
+      },
+      {
+        key: 'phone_number',
+        name: 'Phone Number',
+        icon: 'mdi:phone',
+      },
+      {
+        key: 'line_name',
+        name: 'Line Name',
+        icon: 'mdi:account',
+      },
+      {
+        key: 'last_updated',
+        name: 'Last Updated',
+        deviceClass: 'timestamp',
+        icon: 'mdi:clock-outline',
+      },
     ];
 
     for (const ent of entities) {
@@ -141,6 +170,11 @@ export class MintMqttBridge {
       data_percent_used: data.dataPercentUsed,
       cycle_end_date: data.cycleEndDate,
       days_remaining: data.daysRemaining,
+      plan_months: data.planMonths,
+      plan_days_remaining: data.daysRemainingPlan,
+      phone_number: data.phone,
+      line_name: data.lineName,
+      last_updated: data.lastUpdated,
     };
 
     for (const [key, val] of Object.entries(states)) {
