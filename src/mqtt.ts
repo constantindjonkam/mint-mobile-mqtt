@@ -30,9 +30,10 @@ export class MintMqttBridge {
   }
 
   private getDevicePayload(phone: string) {
+    const last4 = phone.slice(-4);
     return {
-      identifiers: [`mint_${phone}`],
-      name: `Mint Mobile (${phone})`,
+      identifiers: [`mint_${last4}`],
+      name: `Mint Mobile ...${last4}`,
       manufacturer: 'Mint Mobile',
       model: 'Mobile Plan',
     };
@@ -60,6 +61,7 @@ export class MintMqttBridge {
 
     console.log(`[mqtt] Configuring Home Assistant discovery entities for ${phone}...`);
     const device = this.getDevicePayload(phone);
+    const last4 = phone.slice(-4);
 
     const entities = [
       {
@@ -144,7 +146,7 @@ export class MintMqttBridge {
 
       const payload: any = {
         name: ent.name,
-        unique_id: `mint_${phone}_${ent.key}`,
+        unique_id: `mint_${last4}_${ent.key}`,
         state_topic: stateTopic,
         device,
       };
