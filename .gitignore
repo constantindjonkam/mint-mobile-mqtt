@@ -1,0 +1,4 @@
+node_modules/
+mint_data/
+.env
+poc_output.json
