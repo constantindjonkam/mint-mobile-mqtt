@@ -30,18 +30,9 @@ export interface MintAccountInfo {
 }
 
 const COMMON_HEADERS = {
-  accept: '*/*',
-  channel: 'web-am',
-  origin: 'https://my.mintmobile.com',
-  referer: 'https://my.mintmobile.com/',
-  'sec-ch-ua': '"Microsoft Edge";v="149", "Chromium";v="149", "Not)A;Brand";v="24"',
-  'sec-ch-ua-mobile': '?0',
-  'sec-ch-ua-platform': '"macOS"',
-  'sec-fetch-dest': 'empty',
-  'sec-fetch-mode': 'cors',
-  'sec-fetch-site': 'same-site',
-  'user-agent':
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0',
+  accept: 'application/json',
+  'kaena-channel': 'ktrz9qhy92a4nx6',
+  'user-agent': 'MintMobile | 2026.5.27 (9076) | arm64 | dce80f5e-5d5c-4c67-bd93-4e4e19f2db8f | Android',
 };
 
 export async function fetchMintData(token: string, userId: string): Promise<MintAccountInfo[]> {
