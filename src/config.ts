@@ -1,0 +1,37 @@
+// Config parser
+
+export interface Config {
+  mintPhone: string;
+  mintPass: string;
+  mqttUrl: string;
+  mqttUser?: string;
+  mqttPass?: string;
+  mqttPrefix: string;
+  pollIntervalMins: number;
+}
+
+export function loadConfig(): Config {
+  const mintPhone = process.env.MINT_PHONE;
+  const mintPass = process.env.MINT_PASSWORD;
+
+  if (!mintPhone || !mintPass || mintPass === 'your_password_here') {
+    console.error('Error: MINT_PHONE and MINT_PASSWORD must be set in the .env file.');
+    process.exit(1);
+  }
+
+  const mqttUrl = process.env.MQTT_URL || 'mqtt://localhost:1883';
+  const mqttUser = process.env.MQTT_USER || undefined;
+  const mqttPass = process.env.MQTT_PASS || undefined;
+  const mqttPrefix = process.env.MQTT_PREFIX || 'homeassistant';
+  const pollIntervalMins = parseInt(process.env.POLL_INTERVAL_MINS || '60', 10);
+
+  return {
+    mintPhone,
+    mintPass,
+    mqttUrl,
+    mqttUser,
+    mqttPass,
+    mqttPrefix,
+    pollIntervalMins,
+  };
+}
