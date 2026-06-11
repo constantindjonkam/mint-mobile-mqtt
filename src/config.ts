@@ -27,7 +27,12 @@ export function loadConfig(): Config {
   const mqttPrefix = process.env.MQTT_PREFIX || 'mintmobile';
   const mqttDiscovery = process.env.MQTT_DISCOVERY !== 'false'; // default true
   const mqttDiscoveryPrefix = process.env.MQTT_DISCOVERY_PREFIX || 'homeassistant';
-  const pollIntervalMins = parseInt(process.env.POLL_INTERVAL_MINS || '60', 10);
+  const pollIntervalMins = parseInt(process.env.POLL_INTERVAL_MINS || '720', 10);
+
+  if (isNaN(pollIntervalMins) || pollIntervalMins < 60) {
+    console.error('Error: POLL_INTERVAL_MINS must be a number greater than or equal to 60 (to protect Mint Mobile API rate limits).');
+    process.exit(1);
+  }
 
   return {
     mintPhone,
