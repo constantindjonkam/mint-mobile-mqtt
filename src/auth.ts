@@ -72,8 +72,7 @@ export async function getValidSession(phone: string, password: string): Promise<
           'content-type': 'application/json',
           authorization: `Bearer ${staticAppToken}`,
           'kaena-channel': 'ktrz9qhy92a4nx6',
-          'user-agent':
-            'MintMobile | 2026.5.27 (9076) | arm64 | dce80f5e-5d5c-4c67-bd93-4e4e19f2db8f | Android',
+          'user-agent': 'MintMobile | 2026.5.27 (9076) | arm64 | dce80f5e-5d5c-4c67-bd93-4e4e19f2db8f | Android',
         },
         body: JSON.stringify({
           id: cached.userId,
